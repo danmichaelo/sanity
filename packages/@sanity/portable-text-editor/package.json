@@ -38,9 +38,9 @@
   "dependencies": {
     "@sanity/block-tools": "2.23.0",
     "@sanity/schema": "2.23.0",
+    "@sanity/slate-react": "0.72.2",
     "@sanity/types": "2.23.2",
     "@sanity/util": "2.23.2",
-    "@sanity/slate-react": "0.72.2",
     "debug": "^3.2.7",
     "is-hotkey": "^0.1.6",
     "lodash": "^4.17.15",
@@ -59,6 +59,7 @@
     "@types/jest": "^27.0.1",
     "@types/jest-dev-server": "^4.2.1",
     "@types/lodash": "^4.14.149",
+    "@types/node": "^14.18.0",
     "@types/node-ipc": "^9.0.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
