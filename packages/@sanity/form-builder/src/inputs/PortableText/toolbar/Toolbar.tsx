@@ -98,8 +98,8 @@ const InnerToolbar = memo(function InnerToolbar({
           $withMaxWidth={showInsertMenu}
         >
           <ActionMenu
-            disabled={disabled}
             collapsed={collapsed}
+            disabled={disabled}
             groups={actionGroups}
             isFullscreen={isFullscreen}
           />
@@ -149,7 +149,7 @@ export function Toolbar(props: ToolbarProps) {
   const features = useFeatures()
   const editor = usePortableTextEditor()
   const selection = usePortableTextEditorSelection()
-  const disabled = !selection
+  const disabled = readOnly || !selection
 
   const {push} = useToast()
 
