@@ -196,8 +196,7 @@ export function Toolbar(props: ToolbarProps) {
     async (type: Type) => {
       const initialValue = await resolveInitialValue(type)
       const path = PortableTextEditor.insertBlock(editor, type, initialValue)
-
-      setTimeout(() => onFocus(path.concat(FOCUS_TERMINATOR)), 0)
+      onFocus(path.concat(FOCUS_TERMINATOR))
     },
     [editor, onFocus, resolveInitialValue]
   )
@@ -206,8 +205,7 @@ export function Toolbar(props: ToolbarProps) {
     async (type: Type) => {
       const initialValue = await resolveInitialValue(type)
       const path = PortableTextEditor.insertChild(editor, type, initialValue)
-
-      setTimeout(() => onFocus(path.concat(FOCUS_TERMINATOR)), 0)
+      onFocus(path.concat(FOCUS_TERMINATOR))
     },
     [editor, onFocus, resolveInitialValue]
   )
