@@ -1,4 +1,4 @@
-import {Descendant, Transforms} from 'slate'
+import {Descendant, Transforms, Element as SlateElement} from 'slate'
 import {isEqual} from 'lodash'
 import isHotkey from 'is-hotkey'
 import React, {
@@ -6,9 +6,9 @@ import React, {
   useMemo,
   useState,
   useEffect,
-  useRef,
   forwardRef,
   useLayoutEffect,
+  useRef,
 } from 'react'
 import {Editable as SlateEditable, Slate, ReactEditor, withReact} from '@sanity/slate-react'
 import {
@@ -102,6 +102,7 @@ export const PortableTextEditable = forwardRef(function PortableTextEditable(
   const value = usePortableTextEditorValue()
   const ref = useForwardedRef(forwardedRef)
   const slateEditor = portableTextEditor.slateInstance
+  const dirty = useRef(true)
 
   const {change$, isThrottling, keyGenerator, portableTextFeatures, readOnly} = portableTextEditor
 
@@ -214,22 +215,53 @@ export const PortableTextEditable = forwardRef(function PortableTextEditable(
     const fromMap = VALUE_TO_SLATE_VALUE.get(value || [])
     if (fromMap === slateEditor.children) {
       debug('Value in sync, not updating value from props')
+      dirty.current = false
     } else {
-      debug(`Setting value from props`)
-      const slateValueFromProps = toSlateValue(
-        getValueOrInitialValue(value, [placeHolderBlock]),
-        blockType.name,
-        KEY_TO_SLATE_ELEMENT.get(slateEditor)
-      )
-      slateEditor.children = slateValueFromProps
-      VALUE_TO_SLATE_VALUE.set(value || [], slateValueFromProps)
-      // Signal changed after this tick (this is really important to let plugins catch up first!)
-      setTimeout(() => {
-        slateEditor.onChange()
+      if (!value) {
+        dirty.current = true
+      }
+      slateEditor.children.forEach((blk, index) => {
+        if (slateEditor.isTextBlock(blk)) {
+          if (value && !isEqual(blk, value[index])) {
+            dirty.current = true
+          }
+        } else if (SlateElement.isElement(blk) && slateEditor.isVoid(blk)) {
+          const testBlk = {_key: blk._key, _type: blk._type, ...blk.value}
+          if (value && !isEqual(testBlk, value[index])) {
+            dirty.current = true
+          }
+        }
       })
+      if (dirty.current) {
+        debug(`Setting value from props.`)
+        const slateValueFromProps = toSlateValue(
+          getValueOrInitialValue(value, [placeHolderBlock]),
+          blockType.name,
+          KEY_TO_SLATE_ELEMENT.get(slateEditor)
+        )
+        slateEditor.children = slateValueFromProps
+        VALUE_TO_SLATE_VALUE.set(value || [], slateValueFromProps)
+        // Signal changed after this tick (this is really important to let plugins catch up first!
+        // This is specially true for the selection adjustment which is done in the withPatches plugin.
+        setTimeout(() => {
+          slateEditor.onChange()
+        })
+        dirty.current = false
+        change$.next({type: 'value', value})
+        return
+      }
+      debug(`Not replacing editor value from props (same value)`)
     }
-    change$.next({type: 'value', value})
-  }, [change$, isSelecting, isThrottling, placeHolderBlock, blockType.name, slateEditor, value])
+  }, [
+    change$,
+    isSelecting,
+    isThrottling,
+    placeHolderBlock,
+    blockType.name,
+    slateEditor,
+    value,
+    ref,
+  ])
 
   // Restore selection from props
   useEffect(() => {
